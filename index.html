@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+  <title>Feito para rosas desse mundo</title>
+  <style>
+    :root{
+      --fade: 600ms ease;
+      --btn-bg: rgba(0,0,0,.28);
+      --btn-bg-hover: rgba(0,0,0,.6);
+      --btn-border: rgba(255,255,255,.18);
+      --btn-shadow: 0 6px 30px rgba(0,0,0,.35);
+    }
+    
+    html, body { height: 100%; }
+    
+    body{
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: #000;
+      color: #fff;
+      overflow: hidden;
+    }
+
+    /* Painel de Boas-Vindas */
+    .welcome-panel {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(ellipse at center, #1a1a2e 0%, #0f0f1e 100%);
+      z-index: 200;
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .welcome-panel.hidden {
+      opacity: 0;
+      transform: scale(0.95);
+      pointer-events: none;
+    }
+
+    .welcome-title {
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      margin-bottom: 0.5rem;
+      font-weight: 200;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: gradient-shift 3s ease infinite;
+    }
+
+    @keyframes gradient-shift {
+      0%, 100% { filter: hue-rotate(0deg); }
+      50% { filter: hue-rotate(30deg); }
+    }
+
+    .welcome-subtitle {
+      font-size: 1.1rem;
+      opacity: 0.6;
+      margin-bottom: 3rem;
+      font-weight: 300;
+      letter-spacing: 0.1em;
+    }
+
+    .landscapes-grid {
+      display: flex;
+      gap: 2rem;
+      padding: 0 2rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 1200px;
+    }
+
+    .landscape-card {
+      position: relative;
+      width: 320px;
+      height: 420px;
+      border-radius: 16px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+
+    .landscape-card:hover {
+      transform: translateY(-12px) scale(1.03);
+      box-shadow: 0 20px 60px rgba(102, 126, 234, 0.4);
+    }
+
+    .landscape-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, 
+        transparent 0%, 
+        rgba(102, 126, 234, 0.1) 50%, 
+        transparent 100%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .landscape-card:hover::before {
+      opacity: 1;
+    }
+
+    .landscape-preview {
+      width: 100%;
+      height: 75%;
+      object-fit: cover;
+      filter: brightness(0.85);
+      transition: filter 0.4s;
+    }
+
+    .landscape-card:hover .landscape-preview {
+      filter: brightness(1);
+    }
+
+    .landscape-info {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 1.8rem 1.5rem;
+      background: linear-gradient(to top, 
+        rgba(0,0,0,0.95) 0%, 
+        rgba(0,0,0,0.7) 60%,
+        transparent 100%);
+      transform: translateY(20px);
+      transition: transform 0.4s;
+    }
+
+    .landscape-card:hover .landscape-info {
+      transform: translateY(0);
+    }
+
+    .landscape-name {
+      font-size: 1.5rem;
+      margin: 0 0 0.5rem 0;
+      font-weight: 300;
+      letter-spacing: 0.05em;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    .landscape-desc {
+      font-size: 0.9rem;
+      opacity: 0.7;
+      line-height: 1.4;
+      margin: 0;
+    }
+
+    /* Ícone de entrada */
+    .enter-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      width: 60px;
+      height: 60px;
+      background: rgba(255,255,255,0.9);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s;
+      z-index: 3;
+    }
+
+    .landscape-card:hover .enter-icon {
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .enter-icon svg {
+      width: 24px;
+      height: 24px;
+      fill: #1a1a2e;
+    }
+
+    /* Frases românticas */
+    .love-message {
+      position: fixed;
+      font-family: 'Georgia', serif;
+      font-style: italic;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 1rem;
+      letter-spacing: 0.05em;
+      animation: fadeIn 2s ease;
+      text-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+      transition: color 0.3s ease;
+    }
+
+    .love-message:hover {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .love-bottom {
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+    }
+
+    .love-corner {
+      top: 30px;
+      right: 30px;
+      text-align: right;
+      font-size: 0.9rem;
+    }
+
+    @keyframes fadeIn {
+      from { 
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+      }
+      to { 
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+
+    /* Coração animado */
+    .heart {
+      display: inline-block;
+      color: #ff6b9d;
+      animation: heartbeat 1.5s ease-in-out infinite;
+      margin: 0 5px;
+    }
+
+    @keyframes heartbeat {
+      0% { transform: scale(1); }
+      14% { transform: scale(1.3); }
+      28% { transform: scale(1); }
+      42% { transform: scale(1.3); }
+      70% { transform: scale(1); }
+    }
+
+    /* Palco full-screen */
+    .stage{
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: #000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+    }
+
+    .stage.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* Camadas com iframes */
+    .layer{
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity var(--fade), visibility var(--fade);
+      will-change: opacity;
+      background: #000;
+      pointer-events: none;
+    }
+    
+    .layer.visible{ 
+      opacity: 1; 
+      visibility: visible;
+      pointer-events: all;
+      z-index: 5;
+    }
+
+    /* Botão único flutuante */
+    .fab{
+      position: fixed;
+      right: clamp(12px, 2vw, 20px);
+      bottom: clamp(12px, 2vw, 20px);
+      display: none;
+      align-items: center;
+      gap: .6rem;
+      padding: .7rem .95rem;
+      border-radius: 999px;
+      background: var(--btn-bg);
+      color: #fff;
+      border: 1px solid var(--btn-border);
+      box-shadow: var(--btn-shadow);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      cursor: pointer;
+      user-select: none;
+      opacity: .78;
+      transition: background .2s, opacity .2s, transform .1s;
+      z-index: 100;
+    }
+
+    .fab.show {
+      display: inline-flex;
+    }
+    
+    .fab:hover,
+    .fab:focus-visible{
+      background: var(--btn-bg-hover);
+      opacity: 1;
+      outline: none;
+    }
+    
+    .fab:active{ transform: translateY(1px); }
+    .fab[disabled]{ opacity: .55; cursor: not-allowed; }
+
+    .fab .icon{
+      width: 1.1rem; 
+      height: 1.1rem; 
+      display: inline-block;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,.35));
+    }
+
+    /* Indicador de carregamento */
+    .loading-indicator {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #fff;
+      font-size: 1.2rem;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s, visibility 0.3s;
+      z-index: 150;
+      text-align: center;
+    }
+
+    .loading-indicator.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255,255,255,0.1);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Botão voltar */
+    .back-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--btn-bg);
+      border: 1px solid var(--btn-border);
+      color: #fff;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(6px);
+      transition: all 0.2s;
+      opacity: 0.7;
+      z-index: 100;
+    }
+
+    .back-btn.show {
+      display: flex;
+    }
+
+    .back-btn:hover {
+      background: var(--btn-bg-hover);
+      opacity: 1;
+    }
+
+    /* Responsivo */
+    @media (max-width: 768px) {
+      .landscapes-grid {
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+      }
+      
+      .landscape-card {
+        width: 85vw;
+        max-width: 340px;
+        height: 350px;
+      }
+
+      .welcome-title {
+        font-size: 2rem;
+        letter-spacing: 0.2em;
+      }
+
+      .love-corner {
+        top: 15px;
+        right: 15px;
+        font-size: 0.85rem;
+      }
+
+      .love-bottom {
+        bottom: 20px;
+        font-size: 0.95rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="welcome-panel" id="welcomePanel">
+    <div class="love-message love-corner">
+      Feito para uma rosa qualquer ai <span class="heart">♥</span>
+    </div>
+
+    <h1 class="welcome-title">Paisagens</h1>
+    <p class="welcome-subtitle">Escolha uma experiência</p>
+    
+    <div class="landscapes-grid">
+      <div class="landscape-card" onclick="selecionarPaisagem(0)">
+        <img class="landscape-preview" 
+             src="paisagem1/imagens/thumbnail.jpg" 
+             alt="Noite Estrelada"
+             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22%3E%3Cdefs%3E%3ClinearGradient id=%22night%22 x1=%220%25%22 y1=%220%25%22 x2=%220%25%22 y2=%22100%25%22%3E%3Cstop offset=%220%25%22 style=%22stop-color:%230a0e27%22/%3E%3Cstop offset=%22100%25%22 style=%22stop-color:%232d3561%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%22400%22 height=%22210%22 fill=%22url(%23night)%22/%3E%3Crect y=%22210%22 width=%22400%22 height=%2290%22 fill=%22%231e3a5f%22/%3E%3Ccircle cx=%22320%22 cy=%2260%22 r=%2230%22 fill=%22%23fff9d9%22 opacity=%220.9%22/%3E%3Ccircle cx=%2250%22 cy=%2240%22 r=%222%22 fill=%22white%22/%3E%3Ccircle cx=%22150%22 cy=%2280%22 r=%222%22 fill=%22white%22/%3E%3Ccircle cx=%22250%22 cy=%2230%22 r=%222%22 fill=%22white%22/%3E%3C/svg%3E'">
+        <div class="landscape-info">
+          <h3 class="landscape-name">Noite Estrelada</h3>
+          <p class="landscape-desc">Uma experiência poética sob o céu noturno</p>
+        </div>
+        <div class="enter-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="landscape-card" onclick="selecionarPaisagem(1)">
+        <img class="landscape-preview" 
+             src="paisagem2/imagens/thumbnail.jpg" 
+             alt="Amanhecer Dourado"
+             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22%3E%3Cdefs%3E%3ClinearGradient id=%22dawn%22 x1=%220%25%22 y1=%220%25%22 x2=%220%25%22 y2=%22100%25%22%3E%3Cstop offset=%220%25%22 style=%22stop-color:%23ff6b6b%22/%3E%3Cstop offset=%22100%25%22 style=%22stop-color:%23feca57%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%22400%22 height=%22300%22 fill=%22url(%23dawn)%22/%3E%3Ccircle cx=%22200%22 cy=%22180%22 r=%2240%22 fill=%22%23fff3b2%22 opacity=%220.9%22/%3E%3C/svg%3E'">
+        <div class="landscape-info">
+          <h3 class="landscape-name">Amanhecer Dourado</h3>
+          <p class="landscape-desc">O nascer do sol e suas promessas</p>
+        </div>
+        <div class="enter-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="landscape-card" onclick="selecionarPaisagem(2)">
+        <img class="landscape-preview" 
+             src="paisagem3/imagens/thumbnail.jpg" 
+             alt="Crepúsculo Sereno"
+             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22%3E%3Cdefs%3E%3ClinearGradient id=%22dusk%22 x1=%220%25%22 y1=%220%25%22 x2=%220%25%22 y2=%22100%25%22%3E%3Cstop offset=%220%25%22 style=%22stop-color:%23667eea%22/%3E%3Cstop offset=%22100%25%22 style=%22stop-color:%23764ba2%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%22400%22 height=%22300%22 fill=%22url(%23dusk)%22/%3E%3Cellipse cx=%22200%22 cy=%22250%22 rx=%22120%22 ry=%2240%22 fill=%22%23f093fb%22 opacity=%220.2%22/%3E%3C/svg%3E'">
+        <div class="landscape-info">
+          <h3 class="landscape-name">Minha playlist</h3>
+          <p class="landscape-desc">Mô tranquilidade</p>
+        </div>
+        <div class="enter-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="love-message love-bottom">
+      <span class="heart">♥</span> Feito por alguém que possivelmente te ama, sei lá <span class="heart">♥</span>
+    </div>
+  </div>
+
+  <div class="stage" id="stage">
+    <iframe id="frameA" class="layer"
+      allow="accelerometer; autoplay; camera; encrypted-media; fullscreen; geolocation; gyroscope; microphone; midi; payment; vr; xr-spatial-tracking"
+      allowfullscreen>
+    </iframe>
+
+    <iframe id="frameB" class="layer"
+      allow="accelerometer; autoplay; camera; encrypted-media; fullscreen; geolocation; gyroscope; microphone; midi; payment; vr; xr-spatial-tracking"
+      allowfullscreen>
+    </iframe>
+  </div>
+
+  <div class="loading-indicator" id="loadingIndicator">
+    <div class="spinner"></div>
+    <div>Carregando paisagem...</div>
+  </div>
+
+  <button class="back-btn" id="backBtn" onclick="voltarMenu()" aria-label="Voltar ao menu">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M19 12H5M5 12L12 19M5 12L12 5"/>
+    </svg>
+  </button>
+
+  
+  <script>
+    // Configuração das paisagens
+    const paisagens = [
+      {
+        url: 'paisagem1/index.html',
+        nome: 'Noite Estrelada',
+        desc: 'Uma experiência poética sob o céu noturno'
+      },
+      {
+        url: 'paisagem2/index.html',
+        nome: 'Amanhecer Dourado',
+        desc: 'O nascer do sol e suas promessas'
+      },
+      {
+        url: 'paisagem3/index.html',
+        nome: 'Crepúsculo Sereno',
+        desc: 'A tranquilidade do entardecer'
+      }
+    ];
+
+    // Elementos DOM
+    const welcomePanel = document.getElementById('welcomePanel');
+    const stage = document.getElementById('stage');
+    const frameA = document.getElementById('frameA');
+    const frameB = document.getElementById('frameB');
+    const backBtn = document.getElementById('backBtn');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+
+    // Estado
+    let atual = 0;
+    let mostrandoA = true;
+    let trocando = false;
+    let modoVisualizacao = false;
+
+    // Função para resetar iframe
+    function resetFrame(frame) {
+      frame.src = 'about:blank';
+      frame.classList.remove('visible');
+      delete frame.dataset.src;
+    }
+
+    // Função para carregar paisagem
+    function carregarPaisagem(frame, src, onLoadCallback) {
+      loadingIndicator.classList.add('show');
+      
+      frame.onload = null;
+      frame.onerror = null;
+      
+      const handleLoad = () => {
+        console.log('Paisagem carregada:', src);
+        loadingIndicator.classList.remove('show');
+        frame.dataset.src = src;
+        if (onLoadCallback) onLoadCallback();
+      };
+      
+      const handleError = () => {
+        console.error('Erro ao carregar paisagem:', src);
+        loadingIndicator.classList.remove('show');
+        btnTrocar.disabled = false;
+      };
+      
+      frame.onload = handleLoad;
+      frame.onerror = handleError;
+      
+      frame.src = src + '?t=' + Date.now();
+    }
+
+    // Função para selecionar paisagem do menu
+    function selecionarPaisagem(index) {
+      atual = index;
+      modoVisualizacao = true;
+      
+      // Anima saída do painel
+      welcomePanel.classList.add('hidden');
+      
+      // Aguarda animação e carrega paisagem
+      setTimeout(() => {
+        stage.classList.add('active');
+        
+        const frame = mostrandoA ? frameA : frameB;
+        carregarPaisagem(frame, paisagens[index].url, () => {
+          frame.classList.add('visible');
+          backBtn.classList.add('show');
+        });
+      }, 300);
+    }
+
+    function voltarMenu() {
+      modoVisualizacao = false;
+      
+      backBtn.classList.remove('show');
+      stage.classList.remove('active');
+      
+      setTimeout(() => {
+        resetFrame(frameA);
+        resetFrame(frameB);
+        welcomePanel.classList.remove('hidden');
+      }, 600);
+    }
+
+    function mostrar(index) {
+      if (!modoVisualizacao) return;
+      
+      const proximaSrc = paisagens[index].url;
+      const front = mostrandoA ? frameB : frameA;
+      const back = mostrandoA ? frameA : frameB;
+
+      trocando = true;
+
+      const aplicarCrossfade = () => {
+        front.classList.add('visible');
+        back.classList.remove('visible');
+        mostrandoA = !mostrandoA;
+
+        setTimeout(() => {
+          resetFrame(back);
+          trocando = false;
+        }, 650);
+      };
+
+      if (front.dataset.src === proximaSrc) {
+        aplicarCrossfade();
+      } else {
+        carregarPaisagem(front, proximaSrc, aplicarCrossfade);
+      }
+    }
+
+   
+    window.addEventListener('keydown', (e) => {
+      if (!modoVisualizacao) return;
+      
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        e.preventDefault();
+        btnTrocar.click();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        if (trocando) return;
+        atual = (atual - 1 + paisagens.length) % paisagens.length;
+        mostrar(atual);
+      } else if (e.key === 'Escape') {
+        voltarMenu();
+      }
+    });
+  </script>
+</body>
+</html>
