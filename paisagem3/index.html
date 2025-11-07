@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha Coleção de Músicas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Montserrat', Arial, sans-serif;
+            background: linear-gradient(135deg, #232526 0%, #414345 100%);
+            min-height: 100vh;
+            color: #eee;
+        }
+        header {
+            background: linear-gradient(90deg, #232526 0%, #414345 100%);
+            padding: 2rem 0 1rem 0;
+            text-align: center;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2.8rem;
+            letter-spacing: 2px;
+            text-shadow: 1px 2px 8px #0002;
+        }
+        main {
+            max-width: 900px;
+            margin: 2rem auto;
+            background: rgba(30,30,40,0.92);
+            border-radius: 18px;
+            box-shadow: 0 4px 24px #0005;
+            padding: 2rem;
+        }
+        form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            align-items: flex-end;
+        }
+        form input, form button {
+            padding: 0.7rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        form input {
+            flex: 1 1 200px;
+            background: #f3e7e9;
+            color: #333;
+            outline: none;
+            transition: box-shadow 0.2s;
+        }
+        form input:focus {
+            box-shadow: 0 0 0 2px #a18cd1;
+        }
+        form button {
+            background: linear-gradient(90deg, #fbc2eb 0%, #a6c1ee 100%);
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        form button:hover {
+            background: linear-gradient(90deg, #a6c1ee 0%, #fbc2eb 100%);
+        }
+        .music-list-container {
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        .music-list-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .music-list-container::-webkit-scrollbar-track {
+            background: rgba(30,30,40,0.3);
+            border-radius: 8px;
+        }
+        .music-list-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #a6c1ee, #fbc2eb);
+            border-radius: 8px;
+        }
+        .music-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .music-item {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(90deg, #232526 0%, #414345 100%);
+            margin-bottom: 1rem;
+            border-radius: 10px;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 2px 8px #0005;
+            transition: transform 0.1s;
+            position: relative;
+        }
+        .music-item:hover {
+            transform: scale(1.02);
+        }
+        .music-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+        .music-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fff;
+        }
+        .music-message {
+            margin-top: 0.5rem;
+            font-size: 1rem;
+            color: #fbc2eb;
+        }
+        .music-artist {
+            font-size: 1rem;
+            color: #333;
+        }
+        .music-link a {
+            background: #fff;
+            color: #a18cd1;
+            padding: 0.4rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.2s, color 0.2s;
+        }
+        .music-link a:hover {
+            background: #a18cd1;
+            color: #fff;
+        }
+        .play-btn {
+            background: linear-gradient(135deg, #232526 0%, #414345 100%);
+            border: 3px solid #fff;
+            border-radius: 50%;
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1.5rem;
+            box-shadow: 0 2px 8px #0008;
+            cursor: pointer;
+            transition: background 0.2s, border 0.2s;
+            font-size: 2rem;
+            color: #fff;
+            outline: none;
+        }
+        .play-btn.playing {
+            background: #fff;
+            color: #232526;
+            border: 3px solid #4e54c8;
+        }
+        .play-btn:hover {
+            border: 3px solid #4e54c8;
+        }
+        @media (max-width: 600px) {
+            main { padding: 1rem; }
+            .music-item { flex-direction: column; align-items: flex-start; }
+            form { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🎵 Minha playlistzinha</h1>
+        <p>Se não gostar vá toma no meio do cu ❤️</p>
+    </header>
+    <main>
+        <form id="musicForm"></form>
+        <div class="music-list-container">
+            <ul class="music-list">
+                <!-- músicas originais -->
+                <li class="music-item">
+                    <button class="play-btn" onclick="playMusic('audio-eucomMedo', this)" title="Tocar/Pausar" type="button">
+                        <span class="play-icon">▶</span>
+                    </button>
+                    <div class="music-info">
+                        <span class="music-title">Joias de familia</span>
+                    </div>
+                    <audio id="audio-eucomMedo" style="display:none;">
+                        <source src="sounds/joias.mp3" type="audio/mpeg">
+                    </audio>
+                </li>
+                <li class="music-item">
+                    <button class="play-btn" onclick="playMusic('audio-silencio', this)" title="Tocar/Pausar" type="button">
+                        <span class="play-icon">▶</span>
+                    </button>
+                    <div class="music-info">
+                        <span class="music-title">Heart to Heart</span>
+                    </div>
+                    <audio id="audio-silencio" style="display:none;">
+                        <source src="sounds/Heart.mp3" type="audio/mpeg">
+                    </audio>
+                </li>
+                <li class="music-item">
+                    <button class="play-btn" onclick="playMusic('audio-misery', this)" title="Tocar/Pausar" type="button">
+                        <span class="play-icon">▶</span>
+                    </button>
+                    <div class="music-info">
+                        <span class="music-title">Fairy</span>
+                    </div>
+                    <audio id="audio-misery" style="display:none;">
+                        <source src="sounds/Fairy.mp3" type="audio/mpeg">
+                    </audio>
+                </li>
+                <li class="music-item">
+                    <button class="play-btn" onclick="playMusic('audio-tatudobem', this)" title="Tocar/Pausar" type="button">
+                        <span class="play-icon">▶</span>
+                    </button>
+                    <div class="music-info">
+                        <span class="music-title">Flamingo</span>
+                    </div>
+                    <audio id="audio-tatudobem" style="display:none;">
+                        <source src="sounds/Flamingo.mp3" type="audio/mpeg">
+                    </audio>
+                </li>
+
+                <li class="music-item">
+                    <button class="play-btn" onclick="playMusic('audio-nova1', this)" title="Tocar/Pausar" type="button">
+                        <span class="play-icon">▶</span>
+                    </button>
+                    <div class="music-info">
+                        <span class="music-title">Moonlight</span>
+                    </div>
+                    <audio id="audio-nova1" style="display:none;">
+                        <source src="sounds/Moonlight.mp3" type="audio/mpeg">
+                    </audio>
+                </li>
+                <li class="music-item">
+                    <button class="play-btn" onclick="playMusic('audio-nova2', this)" title="Tocar/Pausar" type="button">
+                        <span class="play-icon">▶</span>
+                    </button>
+                    <div class="music-info">
+                        <span class="music-title">Eu fiz uma macumba la fora</span>
+                    </div>
+                    <audio id="audio-nova2" style="display:none;">
+                        <source src="sounds/macumba.mp3" type="audio/mpeg">
+                    </audio>
+                </li>
+
+                <!-- botão Perfeição -->
+                <li class="music-item">
+                    <button class="play-btn" onclick="showPerfection(this)" title="Mensagem Especial" type="button">
+                        <span class="play-icon">▶</span>
+                    </button>
+                    <div class="music-info">
+                        <span class="music-title">Perfeição</span>
+                        <span class="music-message" id="perfection-message" style="display:none;">A perfeição é você, vadia</span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </main>
+    <script>
+        let currentAudio = null;
+        let currentBtn = null;
+        function playMusic(audioId, btn) {
+            if (currentAudio && currentAudio !== document.getElementById(audioId)) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                if(currentBtn) {
+                    currentBtn.classList.remove('playing');
+                    currentBtn.querySelector('.play-icon').textContent = '▶';
+                }
+            }
+            const audio = document.getElementById(audioId);
+            if (audio.paused) {
+                audio.play();
+                btn.classList.add('playing');
+                btn.querySelector('.play-icon').textContent = '⏸';
+                currentAudio = audio;
+                currentBtn = btn;
+            } else {
+                audio.pause();
+                btn.classList.remove('playing');
+                btn.querySelector('.play-icon').textContent = '▶';
+                currentAudio = null;
+                currentBtn = null;
+            }
+            audio.onended = function() {
+                btn.classList.remove('playing');
+                btn.querySelector('.play-icon').textContent = '▶';
+                currentAudio = null;
+                currentBtn = null;
+            };
+        }
+
+        function showPerfection(btn) {
+            const message = document.getElementById('perfection-message');
+            if (message.style.display === 'none') {
+                message.style.display = 'block';
+                btn.classList.add('playing');
+                btn.querySelector('.play-icon').textContent = '⏸';
+            } else {
+                message.style.display = 'none';
+                btn.classList.remove('playing');
+                btn.querySelector('.play-icon').textContent = '▶';
+            }
+        }
+    </script>
+</body>
+</html>
