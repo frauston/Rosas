@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <link rel="icon" href="favicon.ico" type="image/png">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Asteroide B612</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{
+            overflow:hidden;
+            font-family:'Georgia',serif;
+            cursor:default;
+            background:#000;
+        }
+
+        .space{
+            position:fixed;top:0;left:0;width:100%;height:100%;
+            background: radial-gradient(ellipse at center,#1a1a3e 0%,#0a0a1e 100%);
+            overflow:hidden;
+        }
+
+        .star{position:absolute;cursor:pointer;transition:all .3s ease;z-index:3}
+        .star:hover{transform:scale(1.3);filter:brightness(1.6) drop-shadow(0 0 10px currentColor)}
+        @keyframes twinkle{0%,100%{opacity:1}50%{opacity:.5}}
+
+        .sun{
+            position:fixed;top:12%;right:8%;width:180px;height:180px;cursor:pointer;
+            transition:transform .4s cubic-bezier(.44,.09,.52,.89);z-index:4;
+            filter:drop-shadow(0 0 24px #ffe06688)
+        }
+        .sun:hover{transform:scale(1.08);filter:drop-shadow(0 0 40px #ffe066cc)}
+
+        .asteroid-container{
+            position:fixed;bottom:-160px;left:50%;transform:translateX(-50%);z-index:10;
+            cursor:pointer;transition:transform .3s ease;
+        }
+        .asteroid-container:hover{transform:translateX(-50%) scale(1.05)}
+
+        .asteroid{
+            width:420px;height:370px;background:radial-gradient(circle at 35% 35%, #d4a574,#8b6f47);
+            border-radius:50%;position:relative;
+            box-shadow:inset -20px -20px 40px rgba(0,0,0,.4),0 30px 60px rgba(0,0,0,.5);
+        }
+        .crater{position:absolute;background:rgba(107,85,55,.5);border-radius:50%;box-shadow:inset -2px -2px 5px rgba(0,0,0,.5)}
+        .crater1{width:40px;height:40px;top:20%;left:15%}
+        .crater2{width:30px;height:30px;top:60%;left:70%}
+        .crater3{width:25px;height:25px;top:40%;right:10%}
+        .crater4{width:35px;height:35px;bottom:15%;left:40%}
+
+        /* ----- ROSA CENTRALIZADA E MAIS SATURADA ----- */
+        .rose-container{
+            position:absolute;
+            top:-100px;
+            left:50%;
+            transform:translateX(-50%);
+            cursor:pointer;
+            z-index:22;
+            transform-origin:50% 100%;
+            will-change:transform;
+            width:110px;
+            height:150px;
+            display:block;
+        }
+        .rose-svg{display:block;width:110px;height:150px}
+
+        /* Stem kept subtle */
+        .stem{width:6px;height:100px;background:linear-gradient(to bottom,#2e7d32,#1b5e20);margin:0 auto;position:relative;border-radius:3px;z-index:21}
+
+        /* ----- FOX ADJACENT E MAIOR ----- */
+        .fox-container{
+            position:absolute;
+            top:-85px; /* same vertical level as rose */
+            left:14%;   /* placed left side of asteroid, but we'll override exact position with inline style */
+            cursor:pointer;
+            z-index:21;
+            transition:transform .2s ease;
+            width:150px; /* increased width */
+            height:110px; /* increased height */
+            transform:translateX(-50%);
+        }
+        .fox-container:hover{transform:translateX(-50%) scale(1.06)}
+
+        /* ----- POEM BOX ----- */
+        .poem-box{
+            position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);
+            background:linear-gradient(135deg,rgba(15,20,50,.98),rgba(20,30,60,.98));
+            border:3px solid rgba(255,215,100,.8);border-radius:30px;padding:50px 60px;
+            max-width:600px;text-align:center;color:#fff9e6;font-size:24px;line-height:2;font-style:italic;
+            box-shadow:0 0 60px rgba(255,215,100,.4),inset 0 0 40px rgba(255,215,100,.1);
+            opacity:0;transition:all .6s cubic-bezier(.68,-.55,.265,1.55);pointer-events:none;z-index:1000
+        }
+        .poem-box.show{transform:translate(-50%,-50%) scale(1);opacity:1}
+        .poem-box::before{content:'✨';display:block;font-size:40px;margin-bottom:25px;animation:float-sparkle 3s ease-in-out infinite}
+        @keyframes float-sparkle{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-10px) rotate(180deg)}}
+
+        /* ----- SHOOTING STARS ----- */
+        .shooting-star{position:absolute;width:4px;height:4px;background:white;border-radius:50%;box-shadow:0 0 15px white}
+        .shooting-star::before{content:'';position:absolute;width:150px;height:2px;background:linear-gradient(to right,white,transparent);top:50%;left:0;transform:translateY(-50%)}
+        @keyframes shoot{0%{transform:translate(0,0) rotate(-45deg);opacity:1}100%{transform:translate(-500px,500px) rotate(-45deg);opacity:0}}
+
+        /* ----- PLANETS ----- */
+        .planet{position:fixed;border-radius:50%;z-index:2;animation:float-planet 8s ease-in-out infinite;cursor:pointer;transition:transform .3s ease}
+        .planet:hover{transform:scale(1.15)}
+        @keyframes float-planet{0%,100%{transform:translateY(0)}50%{transform:translateY(-30px)}}
+        .planet1{top:20%;left:10%;width:110px;height:110px;background:radial-gradient(circle at 35% 35%,#e57373,#c62828);box-shadow:inset -8px -8px 20px rgba(0,0,0,.3),0 0 30px rgba(229,115,115,.5);position:relative}
+        .planet1::before{content:'';position:absolute;width:15px;height:15px;background:rgba(198,40,40,.6);border-radius:50%;top:25%;left:20%;box-shadow:inset -2px -2px 5px rgba(0,0,0,.4)}
+        .planet1::after{content:'';position:absolute;width:12px;height:12px;background:rgba(198,40,40,.5);border-radius:50%;bottom:30%;right:25%;box-shadow:inset -2px -2px 5px rgba(0,0,0,.4)}
+        .planet2{bottom:25%;right:8%;width:80px;height:80px;background:radial-gradient(circle at 35% 35%,#81c784,#388e3c);box-shadow:inset -8px -8px 20px rgba(0,0,0,.3),0 0 30px rgba(129,199,132,.5);position:relative}
+        .planet2::before{content:'';position:absolute;width:50px;height:9px;background:rgba(56,142,60,.4);border-radius:50%;top:35%;left:15%;transform:rotate(-20deg)}
+        .planet2::after{content:'';position:absolute;width:40px;height:7px;background:rgba(56,142,60,.3);border-radius:50%;bottom:28%;right:10%;transform:rotate(15deg)}
+
+        /* ----- GRASS AROUND THE ROSE (simple, stylized to match rose) ----- */
+        .grass-layer{position:absolute;left:60%;bottom:24px;transform:translateX(-50%);width:160px;height:70px;pointer-events:none;z-index:20}
+        .blade{
+            position:absolute;bottom:6px;width:6px;height:36px;border-radius:6px 6px 0 0;
+            background:linear-gradient(180deg,#64dd17,#2e7d32);transform-origin:bottom center;
+            box-shadow:0 1px 3px rgba(0,0,0,.18);
+        }
+        /* Distribute blades - some rotations and sizes for variety */
+        .blade.b1{left:12%;height:42px;transform:rotate(-12deg) scaleX(.9)}
+        .blade.b2{left:28%;height:34px;transform:rotate(8deg)}
+        .blade.b3{left:44%;height:40px;transform:rotate(-6deg)}
+        .blade.b4{left:60%;height:30px;transform:rotate(10deg)}
+        .blade.b5{left:76%;height:36px;transform:rotate(-8deg)}
+        /* animation for wind (subtle, different durations) */
+        @keyframes sway1{0%{transform:rotate(-8deg)}50%{transform:rotate(-2deg)}100%{transform:rotate(-8deg)}}
+        @keyframes sway2{0%{transform:rotate(6deg)}50%{transform:rotate(12deg)}100%{transform:rotate(6deg)}}
+        @keyframes sway3{0%{transform:rotate(-4deg)}50%{transform:rotate(2deg)}100%{transform:rotate(-4deg)}}
+        .blade.b1{animation:sway1 3.8s ease-in-out infinite}
+        .blade.b2{animation:sway2 4.6s ease-in-out infinite}
+        .blade.b3{animation:sway3 4.2s ease-in-out infinite}
+        .blade.b4{animation:sway2 3.4s ease-in-out infinite}
+        .blade.b5{animation:sway1 4.9s ease-in-out infinite}
+
+        /* small accent blades */
+        .blade.small{width:4px;border-radius:4px 4px 0 0;background:linear-gradient(180deg,#a5d6a7,#66bb6a)}
+        .blade.small.s1{left:8%;bottom:6px;height:22px;transform:rotate(-18deg);animation:sway3 3.6s ease-in-out infinite}
+        .blade.small.s2{left:86%;bottom:6px;height:18px;transform:rotate(18deg);animation:sway3 4.1s ease-in-out infinite}
+        .blade.small.s3{left:52%;bottom:6px;height:20px;transform:rotate(0deg);animation:sway1 4.0s ease-in-out infinite}
+
+        /* ensure rose > grass > fox stacking visually pleasing */
+        .rose-container{z-index:23}
+        .grass-layer{z-index:19}
+        .fox-container{z-index:30}
+
+        /* Rose petal saturation and internal glow adjustments (CSS fallback) */
+        .rose-petal{fill:#ff1e6a;stroke:#b0004a;stroke-width:1.6}
+        .rose-petal-light{fill:#ff577a;stroke:#b0004a;stroke-width:1.2}
+        .rose-center{fill:#ffd1e6;stroke:#ff004f;stroke-width:2;filter:drop-shadow(0 0 8px rgba(255,0,85,.35))}
+    </style>
+</head>
+<body>
+    <div class="space" id="space">
+        <div class="sun" data-poem="Tu és o sol que ilumina meus dias. Sem você, seria apenas escuridão e frio. Você é meu astro, minha luz, minha razão de sorrir.">
+            <svg viewBox="0 0 120 120" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <radialGradient id="sunGrad2" cx="50%" cy="50%">
+                        <stop offset="0%" stop-color="#fffbe7"/>
+                        <stop offset="60%" stop-color="#ffe066"/>
+                        <stop offset="100%" stop-color="#ffb300"/>
+                    </radialGradient>
+                </defs>
+                <circle cx="60" cy="60" r="48" fill="#ffe066" opacity="0.18"/>
+                <circle cx="60" cy="60" r="38" fill="#ffe066" opacity="0.12"/>
+                <circle cx="60" cy="60" r="32" fill="url(#sunGrad2)"/>
+                <g stroke="#ffe066" stroke-width="3" stroke-linecap="round">
+                    <line x1="60" y1="10" x2="60" y2="28"/>
+                    <line x1="60" y1="92" x2="60" y2="110"/>
+                    <line x1="10" y1="60" x2="28" y2="60"/>
+                    <line x1="92" y1="60" x2="110" y2="60"/>
+                    <line x1="25" y1="25" x2="38" y2="38"/>
+                    <line x1="95" y1="25" x2="82" y2="38"/>
+                    <line x1="25" y1="95" x2="38" y2="82"/>
+                    <line x1="95" y1="95" x2="82" y2="82"/>
+                </g>
+            </svg>
+        </div>
+
+        <div class="planet planet1"></div>
+        <div class="planet planet2"></div>
+    </div>
+
+    <div class="asteroid-container" data-poem="O Asteroide B612 é tão pequeno quanto imenso é meu amor por você. Neste pequeno mundo, cabe tudo que é essencial.">
+        <div class="asteroid">
+            <div class="crater crater1"></div>
+            <div class="crater crater2"></div>
+            <div class="crater crater3"></div>
+            <div class="crater crater4"></div>
+
+            <!-- FOX: aumentado e colocado ao lado esquerdo, no mesmo nível da rosa -->
+            <div class="fox-container" style="left:28%; top:-88px; width:150px; height:110px;" data-poem="A raposa me ensinou sobre amor verdadeira: 'Só se vê bem com o coração. O essencial é invisível aos olhos.'">
+                <svg id="fox-svg" width="150" height="110" viewBox="0 0 150 110" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+                    <!-- Cauda -->
+                    <ellipse cx="128" cy="94" rx="26" ry="12" fill="#ffb366" stroke="#ff8c42" stroke-width="3"/>
+                    <ellipse cx="146" cy="94" rx="10" ry="6" fill="#fff5e6" stroke="#ffb366" stroke-width="1.2"/>
+                    <!-- Corpo -->
+                    <ellipse cx="90" cy="74" rx="46" ry="28" fill="#ff6f2a" stroke="#ff4f00" stroke-width="3"/>
+                    <!-- Pernas traseiras -->
+                    <ellipse cx="118" cy="104" rx="11" ry="6" fill="#ff6b1a"/>
+                    <!-- Pernas dianteiras -->
+                    <ellipse cx="72" cy="104" rx="10" ry="6" fill="#ff6b1a"/>
+                    <!-- Cabeça -->
+                    <ellipse cx="48" cy="48" rx="28" ry="22" fill="#ff8c42" stroke="#ff6b1a" stroke-width="3"/>
+                    <!-- Orelha esquerda -->
+                    <g id="fox-ear-left">
+                        <polygon points="30,34 44,6 52,46" fill="#ffb366" stroke="#ff6b1a" stroke-width="2"/>
+                        <polygon points="40,16 42,30 44,20" fill="#fff5e6"/>
+                    </g>
+                    <!-- Orelha direita -->
+                    <g id="fox-ear-right">
+                        <polygon points="64,34 50,6 44,46" fill="#ffb366" stroke="#ff6b1a" stroke-width="2"/>
+                        <polygon points="56,16 54,30 52,20" fill="#fff5e6"/>
+                    </g>
+                    <!-- Focinho branco -->
+                    <ellipse cx="48" cy="66" rx="18" ry="11" fill="#fff5e6"/>
+                    <!-- Nariz -->
+                    <ellipse cx="48" cy="74" rx="3.5" ry="2.1" fill="#2c2c2c"/>
+                    <!-- Olhos -->
+                    <ellipse cx="40" cy="52" rx="2.5" ry="2.5" fill="#2c2c2c"/>
+                    <ellipse cx="56" cy="52" rx="2.5" ry="2.5" fill="#2c2c2c"/>
+                </svg>
+            </div>
+
+            <!-- ROSE: centralizada e mais saturada -->
+            <div class="rose-container" style="left:60%; top:-100px; width:110px; height:150px;" data-poem="Tu és única no mundo. És a minha rosa. Eu te escolhi entre milhões, e foi você quem cativou meu coração. 'Tu te tornas eternamente responsável por aquilo que cativas.'">
+                <!-- Grass layer around the rose (styled to match rose visuals) -->
+                <div class="grass-layer" aria-hidden="true">
+                    <div class="blade b1"></div>
+                    <div class="blade b2"></div>
+                    <div class="blade b3"></div>
+                    <div class="blade b4"></div>
+                    <div class="blade b5"></div>
+                    <div class="blade small s1"></div>
+                    <div class="blade small s2"></div>
+                    <div class="blade small s3"></div>
+                </div>
+
+                <!-- Rosa SVG: mesmo formato, mais saturada, brilho interno -->
+                <svg class="rose-svg" viewBox="0 0 70 120" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Caule -->
+                    <rect x="33" y="55" width="6" height="45" rx="3" fill="#2e7d32"/>
+                    <!-- Folhas (ligeramente mais brilhantes para combinar com rosa) -->
+                    <ellipse cx="23" cy="92" rx="12" ry="5" fill="#66bb6a" transform="rotate(-18 23 92)"/>
+                    <ellipse cx="47" cy="110" rx="12" ry="5" fill="#66bb6a" transform="rotate(18 47 110)"/>
+                    <ellipse cx="35" cy="56" rx="10" ry="5" fill="#2e7d32"/>
+                    <!-- Pétalas saturadas -->
+                    <g>
+                        <ellipse class="rose-petal" cx="35" cy="38" rx="20" ry="18"/>
+                        <ellipse class="rose-petal-light" cx="22" cy="32" rx="9" ry="14"/>
+                        <ellipse class="rose-petal-light" cx="48" cy="32" rx="9" ry="14"/>
+                        <ellipse class="rose-petal" cx="28" cy="22" rx="7" ry="10"/>
+                        <ellipse class="rose-petal" cx="42" cy="22" rx="7" ry="10"/>
+                        <ellipse class="rose-petal-light" cx="35" cy="18" rx="8" ry="8"/>
+                    </g>
+                    <!-- Centro brilhante -->
+                    <ellipse class="rose-center" cx="35" cy="28" rx="6" ry="6"/>
+                    <ellipse cx="37" cy="27" rx="1.7" ry="1.7" fill="#fff5"/>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <div class="poem-box" id="poemBox"></div>
+
+    <audio id="bg-audio" src="sounds/mu.mp3" loop autoplay muted></audio>
+
+    <button id="muteBtn" data-poem="Espero que goste :)" aria-label="Ativar som" title="Ativar som" style="display:none;" class="mute-button">
+        <svg id="muteSvg" viewBox="0 0 24 24" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+            <g id="icon-unmuted" fill="#FFFFFF" style="display:none;">
+                <path d="M3 10v4h4l5 5V5L7 10H3z" />
+                <path d="M16.5 8.5a4.5 4.5 0 010 7" stroke="#FFFFFF" stroke-width="1" fill="none" />
+                <path d="M19 6a7 7 0 010 12" stroke="#FFFFFF" stroke-width="1" fill="none" />
+            </g>
+            <g id="icon-muted" fill="#FFFFFF">
+                <path d="M3 10v4h4l5 5V5L7 10H3z" />
+                <path d="M18 6 L6 18" stroke="#FFFFFF" stroke-width="2" />
+                <path d="M6 6 L18 18" stroke="#FFFFFF" stroke-width="2" />
+            </g>
+        </svg>
+    </button>
+
+    <script>
+(function() {
+            const audio = document.getElementById('bg-audio');
+            const btn = document.getElementById('muteBtn');
+            const icon = document.getElementById('muteIcon');
+
+            const svg = document.getElementById('muteSvg');
+            const iconUnmuted = document.getElementById('icon-unmuted');
+            const iconMuted = document.getElementById('icon-muted');
+            btn.style.display = 'flex';
+
+            btn.style.position = 'fixed';
+            btn.style.left = '20px';
+            btn.style.bottom = '20px';
+            btn.style.width = '56px';
+            btn.style.height = '56px';
+            btn.style.border = 'none';
+            btn.style.borderRadius = '50%';
+            btn.style.background = 'rgba(255,255,255,0.06)';
+            btn.style.backdropFilter = 'blur(6px)';
+            btn.style.display = 'flex';
+            btn.style.alignItems = 'center';
+            btn.style.justifyContent = 'center';
+            btn.style.boxShadow = '0 6px 20px rgba(0,0,0,0.6)';
+            btn.style.cursor = 'pointer';
+            btn.style.zIndex = 2000;
+
+            audio.muted = true;
+            audio.pause();
+            iconUnmuted.style.display = 'none';
+            iconMuted.style.display = 'block';
+            btn.setAttribute('aria-pressed', 'false');
+
+            btn.addEventListener('click', () => {
+                if (audio.muted) {
+                    audio.muted = false;
+                    audio.play().catch(() => {
+                    });
+                    iconUnmuted.style.display = 'block';
+                    iconMuted.style.display = 'none';
+                    btn.title = 'Desativar som';
+                    btn.setAttribute('aria-pressed', 'true');
+                    btn.dataset.poem = 'Espero que goste :)';
+                } else {
+                    audio.muted = true;
+                    audio.pause();
+                    iconUnmuted.style.display = 'none';
+                    iconMuted.style.display = 'block';
+                    btn.title = 'Ativar som';
+                    btn.setAttribute('aria-pressed', 'false');
+                    btn.dataset.poem = 'Espero que goste :)';
+                }
+            });
+        })();
+
+        // --- Orelhas da raposa (ajustadas para novo SVG) ---
+        (function animateFoxEars() {
+            const svg = document.getElementById('fox-svg');
+            if (!svg) return;
+            const leftEar = svg.getElementById('fox-ear-left');
+            const rightEar = svg.getElementById('fox-ear-right');
+            let t = 0;
+            function loop() {
+                t += 0.018 + Math.random() * 0.002;
+                const leftRot = Math.sin(t * 1.1) * 7 + Math.cos(t * 0.7) * 2;
+                const rightRot = Math.cos(t * 0.9) * 3 + Math.sin(t * 0.5) * 1.2;
+                if (leftEar) leftEar.setAttribute('transform', `rotate(${leftRot} 40 20)`);
+                if (rightEar) rightEar.setAttribute('transform', `rotate(${rightRot} 56 20)`);
+                requestAnimationFrame(loop);
+            }
+            loop();
+        })();
+
+        // --- Animação da rosa e leve variação para a grama --- 
+        (function animateRoseAndGrass() {
+            const rose = document.querySelector('.rose-container');
+            const roseCenter = document.querySelector('.rose-center');
+            const stem = document.querySelector('.rose-container rect, .rose-container .stem');
+            const blades = document.querySelectorAll('.grass-layer .blade');
+            let t = 0;
+            function loop() {
+                t += 0.016 + Math.random() * 0.003;
+                const wind = Math.sin(t) * 2.8 + Math.sin(t * 0.37) * 1.0 + Math.cos(t * 0.21) * 0.6;
+                const scaleY = 1 + Math.sin(t * 0.7) * 0.012;
+                const scaleX = 1 + Math.cos(t * 0.5) * 0.008;
+                if (rose) rose.style.transform = `translateX(-50%) rotate(${wind}deg) scaleY(${scaleY}) scaleX(${scaleX})`;
+                if (roseCenter) {
+                    const pulse = 1 + Math.abs(Math.sin(t * 1.2)) * 0.045;
+                    roseCenter.style.transform = `scale(${pulse})`;
+                }
+                // subtle brightness on stem (if present)
+                if (stem) stem.style.filter = `brightness(${1 + Math.abs(Math.sin(t * 0.8)) * 0.07})`;
+
+                // Slight random phase variation for blades to avoid synchronicity (fine tuning)
+                blades.forEach((b, idx) => {
+                    const phase = (Math.sin(t * (0.8 + idx * 0.12) + idx) * 3.5);
+                    b.style.transform = `rotate(${phase}deg)`;
+                });
+
+                requestAnimationFrame(loop);
+            }
+            loop();
+        })();
+
+        const space = document.getElementById('space');
+        const poemBox = document.getElementById('poemBox');
+        let hideTimeout;
+
+        // star poems (kept original)
+        const starPoems = [
+            "As estrelas são belas por causa de uma flor que não se pode ver... e você é minha flor.",
+            "Tu és minha estrela. A mais brilhante no céu do meu coração.",
+            "As estrelas brilham para que cada um possa um dia encontrar a sua. Eu encontrei você.",
+            "Serás para mim única no mundo, e eu serei para ti, único no mundo",
+            "Os gregos acreditavam que cada um tinha sua estrela. Você é a minha.",
+            "Viver com minha estrela é meu maior sonho.",
+            "As estrelas brilham há milhões de anos. Meu amor por você brilhará por toda eternidade."
+        ];
+
+        // forbidden zones kept but safe to avoid overlap (percent coords)
+        const forbiddenZones = [
+            { x:0,y:10,width:25,height:25 },
+            { x:75,y:65,width:25,height:25 },
+            { x:75,y:5,width:35,height:35 },
+            { x:30,y:35,width:40,height:65 }
+        ];
+        function isInForbiddenZone(x,y){
+            return forbiddenZones.some(zone=> x>=zone.x && x <= (zone.x+zone.width) && y>=zone.y && y <= (zone.y+zone.height));
+        }
+
+        // star creation (kept similar)
+        const starTypes = [
+            { color:'#ffffff', glow:'rgba(255,255,255,.8)', size:1 },
+            { color:'#fff9e6', glow:'rgba(255,249,230,.7)', size:.95 },
+            { color:'#e6f3ff', glow:'rgba(230,243,255,.7)', size:.9 },
+            { color:'#fff5e1', glow:'rgba(255,245,225,.6)', size:.85 }
+        ];
+        for(let i=0;i<35;i++){
+            const star = document.createElement('div');
+            star.className='star';
+            const typeIndex = Math.floor(Math.random()*starTypes.length);
+            const starType = starTypes[typeIndex];
+            const baseSize = (Math.random()*4+3)*starType.size;
+            const size = baseSize;
+            let left,top,attempts=0;
+            do{
+                left=Math.random()*100;
+                top=Math.random()*100;
+                attempts++;
+            } while(isInForbiddenZone(left,top) && attempts<50);
+            star.style.left = left + '%';
+            star.style.top = top + '%';
+            const delay = Math.random()*4;
+            star.style.animationDelay = delay + 's';
+            star.dataset.poem = starPoems[Math.floor(Math.random()*starPoems.length)];
+            const starStyle = Math.random();
+            let starSvg;
+            if(starStyle < 0.5){
+                starSvg = `
+                    <svg width="${size*8}" height="${size*8}" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <radialGradient id="sg${i}">
+                                <stop offset="0%" style="stop-color:${starType.color}"/>
+                                <stop offset="50%" style="stop-color:${starType.color};stop-opacity:0.7"/>
+                                <stop offset="100%" style="stop-color:${starType.color};stop-opacity:0"/>
+                            </radialGradient>
+                            <filter id="glow${i}">
+                                <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+                                <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                            </filter>
+                        </defs>
+                        <circle cx="24" cy="24" r="14" fill="url(#sg${i})" opacity="0.6"/>
+                        <path d="M24 8 L26 22 L40 24 L26 26 L24 40 L22 26 L8 24 L22 22 Z" fill="${starType.color}" filter="url(#glow${i})"/>
+                        <circle cx="24" cy="24" r="3" fill="white" opacity="0.9"/><circle cx="24" cy="24" r="1.5" fill="white"/>
+                    </svg>`;
+            } else if(starStyle < 0.8){
+                starSvg = `
+                    <svg width="${size*9}" height="${size*9}" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <radialGradient id="sg${i}">
+                                <stop offset="0%" style="stop-color:${starType.color}"/>
+                                <stop offset="60%" style="stop-color:${starType.color};stop-opacity:0.5"/>
+                                <stop offset="100%" style="stop-color:${starType.color};stop-opacity:0"/>
+                            </radialGradient>
+                            <filter id="glow${i}">
+                                <feGaussianBlur stdDeviation="2" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                            </filter>
+                        </defs>
+                        <circle cx="30" cy="30" r="18" fill="url(#sg${i})" opacity="0.5"/>
+                        <path d="M30,10 L34,22 L47,22 L37,30 L41,42 L30,34 L19,42 L23,30 L13,22 L26,22 Z" fill="${starType.color}" filter="url(#glow${i})"/>
+                        <ellipse cx="27" cy="24" rx="4" ry="6" fill="white" opacity="0.7" transform="rotate(-25 27 24)"/>
+                        <circle cx="30" cy="30" r="2" fill="white"/>
+                    </svg>`;
+            } else {
+                starSvg = `
+                    <svg width="${size*7}" height="${size*7}" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <radialGradient id="sg${i}">
+                                <stop offset="0%" style="stop-color:${starType.color}"/>
+                                <stop offset="40%" style="stop-color:${starType.color};stop-opacity:0.8"/>
+                                <stop offset="100%" style="stop-color:${starType.color};stop-opacity:0"/>
+                            </radialGradient>
+                            <filter id="glow${i}"><feGaussianBlur stdDeviation="1.8" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                        </defs>
+                        <circle cx="20" cy="20" r="15" fill="url(#sg${i})" opacity="0.7"/>
+                        <circle cx="20" cy="20" r="6" fill="${starType.color}" filter="url(#glow${i})"/>
+                        <ellipse cx="18" cy="18" rx="2.5" ry="3.5" fill="white" opacity="0.8" transform="rotate(-30 18 18)"/>
+                        <circle cx="20" cy="20" r="2.5" fill="white" opacity="0.9"/>
+                    </svg>`;
+            }
+            star.innerHTML = starSvg;
+            const twinkleSpeed = 2 + Math.random()*3;
+            star.style.animation = `twinkle ${twinkleSpeed}s ease-in-out infinite`;
+            space.appendChild(star);
+        }
+
+        // shooting stars
+        setInterval(() => {
+            const shootingStar = document.createElement('div');
+            shootingStar.className = 'shooting-star';
+            shootingStar.style.left = Math.random()*70 + 15 + '%';
+            shootingStar.style.top = Math.random()*40 + '%';
+            shootingStar.style.animation = 'shoot 2.5s linear';
+            space.appendChild(shootingStar);
+            setTimeout(()=>shootingStar.remove(),2500);
+        },5000);
+
+        // poem hover handling
+        document.querySelectorAll('[data-poem]').forEach(element=>{
+            element.addEventListener('mouseenter', (e)=>{
+                clearTimeout(hideTimeout);
+                poemBox.textContent = e.currentTarget.dataset.poem || e.target.dataset.poem || '';
+                poemBox.classList.add('show');
+            });
+            element.addEventListener('mouseleave', ()=>{
+                hideTimeout = setTimeout(()=>{poemBox.classList.remove('show')},400);
+            });
+        });
+
+        // ensure rose hover works (stopPropagation)
+        const roseEl = document.querySelector('.rose-container');
+        if(roseEl){
+            roseEl.addEventListener('mouseenter', (e)=>{ e.stopPropagation(); clearTimeout(hideTimeout); poemBox.textContent = e.currentTarget.dataset.poem; poemBox.classList.add('show'); });
+            roseEl.addEventListener('mouseleave', ()=>{ hideTimeout = setTimeout(()=>{poemBox.classList.remove('show')},400); });
+        }
+    </script>
+</body>
+</html>
